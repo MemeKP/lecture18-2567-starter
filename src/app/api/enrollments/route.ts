@@ -1,7 +1,36 @@
 import { DB } from "@lib/DB";
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import  jwt from "jsonwebtoken"
+import {Payload} from "@lib/DB"
 
 export const GET = async (request: NextRequest) => {
+
+  //extract token
+  const rawAutHeader = headers().get('autorization');
+  //const token = rawAutHeader?.split(" ")[1];
+
+  if (!rawAutHeader|| !rawAutHeader.startsWith("Bearer")) {
+    return NextResponse.json({
+      ok: false,
+      messege: "Missing autorization header"
+  })
+  }
+
+  const token = rawAutHeader?.split(' ')[1];
+  const secret = process.env.JWT_SECRET || "This is another secret";
+
+  let studentId = null;
+  try{
+  const payload = jwt.verify(token, secret);
+  console.log(payload);
+  studentId = (<Payload>payload).studentId;
+  } catch {
+    return NextResponse.json({
+      ok: false,
+      messege: "Invalid token"
+    }, {status: 401})
+  }
   // return NextResponse.json(
   //   {
   //     ok: false,
